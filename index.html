@@ -354,6 +354,30 @@ textarea{min-height:100px;resize:vertical}
   <div id="decisionList">
     <p class="small-note">Loading decisions...</p>
   </div>
+  
+<div class="panel" id="collectiveDecisionPanel">
+  <div class="eyebrow">COLLECTIVE DECISION ENGINE</div>
+  <h3>Shape what happens next.</h3>
+
+  <div id="questionCreator">
+    <label for="newQuestion">Propose a question</label>
+    <textarea
+      id="newQuestion"
+      maxlength="300"
+      placeholder="What should this world decide?"
+    ></textarea>
+
+    <button class="primary" onclick="createQuestion()">
+      Propose question →
+    </button>
+    <p id="questionMessage" class="small-note"></p>
+  </div>
+
+  <div id="activeQuestionArea">
+    <p class="small-note">No active question yet.</p>
+  </div>
+</div>
+  
 
   <div class="eyebrow">YOUR CONTRIBUTION</div>
   <textarea
