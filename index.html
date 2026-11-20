@@ -352,26 +352,50 @@ textarea{min-height:100px;resize:vertical}
 </section>
 
 
-  <section class="page" id="create">
-    <div class="page-heading">
-      <div class="eyebrow">Make something happen</div>
-      <h1>Create.</h1>
-      <p class="subtitle">Every world starts with an idea.</p>
-    </div>
-    <div class="panel">
-      <h3>Your experience idea</h3>
-      <p>Give your idea a name and describe what people will do inside it.</p>
-      <input id="ideaName" maxlength="50" placeholder="Name your experience">
-      <textarea id="ideaDescription" maxlength="300" placeholder="What happens in your world?"></textarea>
-      <button class="primary" onclick="previewIdea()">Preview idea →</button>
-    </div>
-    <div class="panel" id="ideaPreview" style="display:none">
-      <div class="eyebrow">YOUR CONCEPT</div>
-      <h3 id="previewName"></h3>
-      <p id="previewDescription"></p>
-      <p class="small-note">This is a local preview. Publishing and sharing will be added later.</p>
-    </div>
-  </section>
+
+<section class="page" id="create">
+  <div class="page-heading">
+    <div class="eyebrow">SHAPE THE UNIVERSE</div>
+    <h1>Create a world.</h1>
+    <p class="subtitle">
+      Start an experience. Let others change what happens next.
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow">NEW EXPERIENCE</div>
+    <h3>Give your world an identity.</h3>
+
+    <label for="worldTitle">World name</label>
+    <input
+      id="worldTitle"
+      type="text"
+      maxlength="80"
+      placeholder="e.g. First Contact"
+    >
+
+    <label for="worldDescription">What's happening?</label>
+    <textarea
+      id="worldDescription"
+      maxlength="500"
+      placeholder="Describe the experience..."
+    ></textarea>
+
+    <label for="worldMode">Choose a mode</label>
+    <select id="worldMode">
+      <option value="chaos">Chaos Mode</option>
+      <option value="deep">Deep Worlds</option>
+      <option value="create">Create Mode</option>
+    </select>
+
+    <button class="primary" onclick="createWorld()">
+      Launch world →
+    </button>
+
+    <p id="createMessage" class="small-note" aria-live="polite"></p>
+  </div>
+</section>
+
 
 
 <section class="page" id="profile">
@@ -660,6 +684,53 @@ async function loadWorlds() {
 }
 
 loadWorlds();
+  
+async function createWorld() {
+  const title = document.getElementById("worldTitle").value.trim();
+  const description = document.getElementById("worldDescription").value.trim();
+  const mode = document.getElementById("worldMode").value;
+  const message = document.getElementById("createMessage");
+
+  if (!title) {
+    message.textContent = "Give your world a name first.";
+    return;
+  }
+
+  const { data: { user }, error: authError } = await db.auth.getUser();
+
+  if (authError || !user) {
+    message.textContent = "Please log in before creating a world.";
+    return;
+  }
+
+  message.textContent = "Creating your world...";
+
+  const { data, error } = await db
+    .from("worlds")
+    .insert({
+      creator_id: user.id,
+      title: title,
+      description: description,
+      mode: mode,
+      status: "active"
+    })
+    .select()
+    .single();
+
+  if (error) {
+    console.error("World creation error:", error);
+    message.textContent = "Could not create world: " + error.message;
+    return;
+  }
+
+  message.textContent = "Your world is live! 🌍";
+
+  document.getElementById("worldTitle").value = "";
+  document.getElementById("worldDescription").value = "";
+
+  await loadWorlds();
+}
+  
   
 </script>
   
