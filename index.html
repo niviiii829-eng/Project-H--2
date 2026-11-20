@@ -610,6 +610,57 @@ async function initializeAccount() {
 }
 
 initializeAccount();
+  
+async function loadWorlds() {
+  const worldList = document.getElementById("worldList");
+  if (!worldList) return;
+
+  worldList.innerHTML =
+    '<p class="small-note">Loading worlds...</p>';
+
+  const { data, error } = await db
+    .from("worlds")
+    .select("id, title, description, mode, created_at")
+    .eq("status", "active")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    worldList.innerHTML =
+      '<p class="small-note">Could not load worlds. Please try again.</p>';
+    console.error("World loading error:", error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    worldList.innerHTML =
+      '<p class="small-note">No worlds yet. Be the first to create one.</p>';
+    return;
+  }
+
+  worldList.innerHTML = "";
+
+  data.forEach((world) => {
+    const card = document.createElement("div");
+    card.className = "world-card";
+
+    const title = document.createElement("h3");
+    title.textContent = world.title;
+
+    const description = document.createElement("p");
+    description.textContent =
+      world.description || "An unexplored experience.";
+
+    const mode = document.createElement("p");
+    mode.className = "small-note";
+    mode.textContent = world.mode.toUpperCase() + " MODE";
+
+    card.append(title, description, mode);
+    worldList.appendChild(card);
+  });
+}
+
+loadWorlds();
+  
 </script>
   
 
