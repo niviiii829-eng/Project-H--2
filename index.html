@@ -907,9 +907,8 @@ async function loadActiveQuestion() {
 
   const { data: question, error } = await db
     .from("world_questions")
-    .select("id, question, created_at")
-    .eq("world_id", activeWorldId)
-    .eq("status", "open")
+    .select("id, question, created_at, status, winning_decision_id")
+.eq("world_id", activeWorldId)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -939,6 +938,33 @@ questionCreator.style.display =
   user && currentWorld && currentWorld.creator_id === user.id
     ? "block"
     : "none";
+  if (question.status === "closed") {
+  const { data: winner, error: winnerError } = await db
+    .from("decisions")
+    .select("choice")
+    .eq("id", question.winning_decision_id)
+    .maybeSingle();
+
+  area.innerHTML = "";
+
+  const heading = document.createElement("h3");
+  heading.textContent = question.question;
+
+  const label = document.createElement("p");
+  label.className = "small-note";
+  label.textContent = "OFFICIAL COMMUNITY OUTCOME";
+
+  const outcome = document.createElement("div");
+  outcome.className = "panel";
+  outcome.textContent = winnerError
+    ? "Could not load the outcome."
+    : winner
+      ? winner.choice
+      : "No winning outcome was recorded.";
+
+  area.append(heading, label, outcome);
+  return;
+  }
 
   const { data: options, error: optionError } = await db
     .from("decisions")
