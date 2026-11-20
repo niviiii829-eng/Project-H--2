@@ -926,6 +926,19 @@ async function loadActiveQuestion() {
   }
 
   activeQuestionId = question.id;
+  const questionCreator = document.getElementById("questionCreator");
+const { data: { user } } = await db.auth.getUser();
+
+const { data: currentWorld } = await db
+  .from("worlds")
+  .select("creator_id")
+  .eq("id", activeWorldId)
+  .single();
+
+questionCreator.style.display =
+  user && currentWorld && currentWorld.creator_id === user.id
+    ? "block"
+    : "none";
 
   const { data: options, error: optionError } = await db
     .from("decisions")
@@ -1020,6 +1033,18 @@ async function loadActiveQuestion() {
   optionMessage.className = "small-note";
 
   area.append(optionInput, optionButton, optionMessage);
+  const closeButton = document.createElement("button");
+closeButton.className = "primary";
+closeButton.textContent = "Close voting & reveal outcome →";
+closeButton.onclick = closeQuestion;
+
+const closeMessage = document.createElement("p");
+closeMessage.id = "closeMessage";
+closeMessage.className = "small-note";
+
+if (user && currentWorld && currentWorld.creator_id === user.id) {
+  area.append(closeButton, closeMessage);
+}
 }
 
 async function addOption() {
@@ -1083,6 +1108,28 @@ async function castVote(decisionId) {
   await loadActiveQuestion();
   }
     
+  
+async function closeQuestion() {
+  if (!activeQuestionId) return;
+
+  const message = document.getElementById("closeMessage");
+  message.textContent = "Calculating the winning outcome...";
+
+  const { data, error } = await db.rpc(
+    "close_world_question",
+    { p_question_id: activeQuestionId }
+  );
+
+  if (error) {
+    message.textContent = "Could not close voting: " + error.message;
+    console.error(error);
+    return;
+  }
+
+  message.textContent = "The community outcome is now official!";
+
+  await loadActiveQuestion();
+      }
   
 
 loadWorlds();
