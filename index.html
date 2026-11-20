@@ -963,7 +963,7 @@ questionCreator.style.display =
     return;
   }
 
-  const { data: { user } } = await db.auth.getUser();
+  
   const alreadyVoted = user
     ? votes.some(vote => vote.user_id === user.id)
     : false;
