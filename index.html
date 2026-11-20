@@ -338,6 +338,37 @@ textarea{min-height:100px;resize:vertical}
       <p class="small-note">Loading worlds...</p>
     </div>
   </div>
+  
+<div id="worldDetail" style="display:none; margin-top:20px;">
+  <button class="primary" onclick="closeWorld()">
+    ← Back to worlds
+  </button>
+
+  <div class="eyebrow" id="detailMode"></div>
+  <h2 id="detailTitle"></h2>
+  <p id="detailDescription" class="small-note"></p>
+
+  <div class="divider"></div>
+
+  <h3>Community decisions</h3>
+  <div id="decisionList">
+    <p class="small-note">Loading decisions...</p>
+  </div>
+
+  <div class="eyebrow">YOUR CONTRIBUTION</div>
+  <textarea
+    id="decisionInput"
+    maxlength="500"
+    placeholder="What should happen next?"
+  ></textarea>
+
+  <button class="primary" onclick="submitDecision()">
+    Submit decision →
+  </button>
+
+  <p id="decisionMessage" class="small-note" aria-live="polite"></p>
+</div>
+  
 
   <div class="panel">
     <div class="eyebrow">THREE CONNECTED MODES</div>
@@ -678,10 +709,134 @@ async function loadWorlds() {
     mode.className = "small-note";
     mode.textContent = world.mode.toUpperCase() + " MODE";
 
-    card.append(title, description, mode);
+    const openButton = document.createElement("button");
+openButton.className = "primary";
+openButton.textContent = "Enter world →";
+openButton.onclick = () => openWorld(world.id);
+
+card.append(title, description, mode, openButton);
     worldList.appendChild(card);
   });
 }
+  
+let activeWorldId = null;
+
+async function openWorld(worldId) {
+  activeWorldId = worldId;
+
+  const worldList = document.getElementById("worldList");
+  const detail = document.getElementById("worldDetail");
+
+  worldList.style.display = "none";
+  detail.style.display = "block";
+
+  document.getElementById("detailTitle").textContent = "Loading...";
+  document.getElementById("decisionList").textContent = "Loading decisions...";
+
+  const { data: world, error } = await db
+    .from("worlds")
+    .select("id, title, description, mode")
+    .eq("id", worldId)
+    .single();
+
+  if (error) {
+    document.getElementById("detailTitle").textContent =
+      "Could not open this world.";
+    console.error(error);
+    return;
+  }
+
+  document.getElementById("detailTitle").textContent = world.title;
+  document.getElementById("detailDescription").textContent =
+    world.description || "An unexplored experience.";
+  document.getElementById("detailMode").textContent =
+    world.mode.toUpperCase() + " MODE";
+
+  await loadDecisions();
+}
+
+async function loadDecisions() {
+  const list = document.getElementById("decisionList");
+
+  const { data, error } = await db
+    .from("decisions")
+    .select("id, choice, created_at")
+    .eq("world_id", activeWorldId)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    list.textContent = "Could not load decisions.";
+    console.error(error);
+    return;
+  }
+
+  list.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    list.textContent = "No decisions yet. Start the conversation.";
+    return;
+  }
+
+  data.forEach((decision) => {
+    const item = document.createElement("div");
+    item.className = "panel";
+
+    const choice = document.createElement("p");
+    choice.textContent = decision.choice;
+
+    item.appendChild(choice);
+    list.appendChild(item);
+  });
+}
+
+async function submitDecision() {
+  const input = document.getElementById("decisionInput");
+  const message = document.getElementById("decisionMessage");
+  const choice = input.value.trim();
+
+  if (!activeWorldId) return;
+
+  if (!choice) {
+    message.textContent = "Write your decision first.";
+    return;
+  }
+
+  const { data: { user }, error: authError } =
+    await db.auth.getUser();
+
+  if (authError || !user) {
+    message.textContent = "Please log in to participate.";
+    return;
+  }
+
+  message.textContent = "Submitting your decision...";
+
+  const { error } = await db
+    .from("decisions")
+    .insert({
+      world_id: activeWorldId,
+      user_id: user.id,
+      choice: choice
+    });
+
+  if (error) {
+    console.error(error);
+    message.textContent = "Could not submit: " + error.message;
+    return;
+  }
+
+  input.value = "";
+  message.textContent = "Your decision has been recorded!";
+
+  await loadDecisions();
+}
+
+function closeWorld() {
+  document.getElementById("worldDetail").style.display = "none";
+  document.getElementById("worldList").style.display = "block";
+  activeWorldId = null;
+}
+  
 
 loadWorlds();
   
