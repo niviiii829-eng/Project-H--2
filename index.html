@@ -317,24 +317,40 @@ textarea{min-height:100px;resize:vertical}
     </div>
   </section>
 
-  <section class="page" id="discover">
-    <div class="page-heading">
-      <div class="eyebrow">Find something unexpected</div>
-      <h1>Discover.</h1>
-      <p class="subtitle">Explore experiences and worlds taking shape.</p>
+
+<section class="page" id="discover">
+  <div class="page-heading">
+    <div class="eyebrow">EXPLORE THE UNKNOWN</div>
+    <h1>Discover.</h1>
+    <p class="subtitle">
+      Explore experiences and worlds taking shape.
+    </p>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow">THE COMMUNITY UNIVERSE</div>
+    <h3>Shared worlds</h3>
+    <p class="small-note">
+      Real experiences created by people in Project H.
+    </p>
+
+    <div id="worldList" aria-live="polite">
+      <p class="small-note">Loading worlds...</p>
     </div>
-    <div class="panel">
-      <div class="eyebrow">COMING INTO VIEW</div>
-      <h3>Shared worlds</h3>
-      <p>Discover community-created experiences will appear here as the world grows.</p>
-    </div>
-    <div class="panel">
-      <div class="eyebrow">EXPLORE</div>
-      <h3>Three connected modes</h3>
-      <p>Jump into Chaos, investigate a Deep World or find something new to create.</p>
-      <button class="primary" onclick="showPage('home')">Explore modes →</button>
-    </div>
-  </section>
+  </div>
+
+  <div class="panel">
+    <div class="eyebrow">THREE CONNECTED MODES</div>
+    <h3>One universe. Different possibilities.</h3>
+    <p class="small-note">
+      Chaos, Deep Worlds and Create — connected through shared experiences.
+    </p>
+    <button class="primary" onclick="showPage('home')">
+      Explore the modes
+    </button>
+  </div>
+</section>
+
 
   <section class="page" id="create">
     <div class="page-heading">
