@@ -1,0 +1,467 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090b12">
+<title>Project H</title>
+<style>
+:root {
+  --bg:#090b12;
+  --panel:#121622;
+  --panel2:#191f2d;
+  --text:#f4f5fb;
+  --muted:#9299aa;
+  --line:#272e3d;
+  --cyan:#65e5e0;
+  --purple:#a58aff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+}
+button{font:inherit;cursor:pointer}
+.app{
+  width:100%;
+  max-width:520px;
+  min-height:100vh;
+  margin:auto;
+  padding:24px 18px 105px;
+}
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:30px;
+}
+.logo{
+  font-size:23px;
+  font-weight:850;
+  letter-spacing:2px;
+}
+.logo span{color:var(--cyan)}
+.status{
+  color:var(--muted);
+  font-size:11px;
+  letter-spacing:1px;
+}
+.status i{
+  display:inline-block;
+  width:7px;height:7px;
+  background:#65e5a0;
+  border-radius:50%;
+  margin-right:7px;
+}
+.eyebrow{
+  color:var(--cyan);
+  font-size:11px;
+  letter-spacing:2px;
+  font-weight:750;
+  text-transform:uppercase;
+}
+h1{
+  font-size:clamp(32px,8vw,43px);
+  line-height:1.08;
+  margin:12px 0;
+  letter-spacing:-1.7px;
+}
+.subtitle{
+  color:var(--muted);
+  font-size:14px;
+  line-height:1.6;
+  max-width:340px;
+}
+.section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin:30px 0 14px;
+}
+.section-title h2{font-size:17px;margin:0}
+.section-title span{font-size:11px;color:var(--muted)}
+.feature{
+  position:relative;
+  overflow:hidden;
+  padding:22px;
+  border:1px solid #39405a;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 90% 10%,#51417b88,transparent 42%),
+    linear-gradient(135deg,#1b2537,#111522 75%);
+}
+.feature:after{
+  content:"";
+  position:absolute;
+  width:150px;height:150px;
+  border:1px solid #a58aff55;
+  border-radius:50%;
+  right:-48px;top:38px;
+  box-shadow:0 0 0 20px #a58aff0c,0 0 0 42px #a58aff09;
+}
+.feature-label{
+  font-size:10px;
+  color:#c5b7ff;
+  letter-spacing:2px;
+  font-weight:800;
+}
+.feature h2{
+  font-size:25px;
+  margin:13px 0 8px;
+  max-width:230px;
+  line-height:1.15;
+}
+.feature p{
+  color:#b4bbcb;
+  font-size:13px;
+  line-height:1.5;
+  max-width:245px;
+}
+.primary{
+  border:0;
+  background:var(--cyan);
+  color:#081313;
+  border-radius:12px;
+  padding:12px 17px;
+  font-weight:800;
+  font-size:13px;
+  margin-top:10px;
+}
+.modes{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.mode{
+  text-align:left;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  border-radius:18px;
+  padding:17px 15px;
+  min-height:155px;
+  transition:.2s;
+}
+.mode:active{transform:scale(.98)}
+.mode .symbol{font-size:24px}
+.mode h3{font-size:16px;margin:15px 0 6px}
+.mode p{
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
+  margin:0;
+}
+.mode.chaos{border-color:#594b72}
+.mode.deep{border-color:#344f69}
+.mode.create{border-color:#65523d}
+.mode.community{border-color:#315b57}
+.mode-detail{
+  margin-top:14px;
+  padding:17px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:17px;
+  display:none;
+}
+.mode-detail.show{display:block}
+.mode-detail h3{margin:0 0 7px}
+.mode-detail p{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+.page{display:none}
+.page.active{display:block}
+.page-heading{margin:10px 0 22px}
+.page-heading h1{font-size:31px}
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:12px;
+}
+.panel h3{margin:0 0 8px;font-size:16px}
+.panel p{color:var(--muted);font-size:13px;line-height:1.5}
+input,textarea{
+  width:100%;
+  background:#0b0e17;
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+  outline:none;
+  font:inherit;
+  margin:7px 0;
+}
+textarea{min-height:100px;resize:vertical}
+.bottom-nav{
+  position:fixed;
+  z-index:10;
+  bottom:0;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:520px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:10px 8px calc(10px + env(safe-area-inset-bottom));
+  background:#0d111bed;
+  border-top:1px solid var(--line);
+  backdrop-filter:blur(18px);
+}
+.nav-button{
+  background:none;
+  border:0;
+  color:var(--muted);
+  padding:8px 2px;
+  font-size:10px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+}
+.nav-button b{font-size:19px;font-weight:500}
+.nav-button.active{color:var(--cyan)}
+.toast{
+  position:fixed;
+  z-index:20;
+  bottom:95px;
+  left:50%;
+  transform:translate(-50%,15px);
+  opacity:0;
+  pointer-events:none;
+  background:#e3fffb;
+  color:#091414;
+  padding:12px 17px;
+  border-radius:12px;
+  font-size:12px;
+  font-weight:750;
+  transition:.25s;
+  width:max-content;
+  max-width:90%;
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.small-note{color:var(--muted);font-size:11px;line-height:1.5}
+@media(min-width:600px){
+  body{padding:25px 0}
+  .app{border:1px solid var(--line);border-radius:28px;min-height:90vh}
+  .bottom-nav{bottom:25px;border:1px solid var(--line);border-radius:0 0 20px 20px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo">PROJECT <span>H</span></div>
+  <div class="status"><i></i>WORLD ONLINE</div>
+</header>
+
+<main>
+  <section class="page active" id="home">
+    <div class="eyebrow">A world shaped by people</div>
+    <h1>Don't just watch.<br>Change what happens.</h1>
+    <p class="subtitle">
+      Enter shared experiences, make decisions and leave your mark on worlds that evolve together.
+    </p>
+
+    <div class="section-title">
+      <h2>Happening now</h2>
+      <span>THE PLAYGROUND</span>
+    </div>
+
+    <div class="feature">
+      <div class="feature-label">FIRST CONTACT · EXPERIENCE 001</div>
+      <h2>Something is waiting beyond the signal.</h2>
+      <p>A new shared experience is taking shape. Your decisions will help determine what happens next.</p>
+      <button class="primary" onclick="selectMode('chaos')">Enter the playground ↗</button>
+    </div>
+
+    <div class="section-title">
+      <h2>Choose your experience</h2>
+      <span>THREE WAYS IN</span>
+    </div>
+
+    <div class="modes">
+      <button class="mode chaos" onclick="selectMode('chaos')">
+        <div class="symbol">⚡</div>
+        <h3>Chaos Mode</h3>
+        <p>Quick rounds. Unexpected events. Collective decisions.</p>
+      </button>
+      <button class="mode deep" onclick="selectMode('deep')">
+        <div class="symbol">◈</div>
+        <h3>Deep Worlds</h3>
+        <p>Explore mysteries, uncover clues and shape evolving stories.</p>
+      </button>
+      <button class="mode create" onclick="selectMode('create')">
+        <div class="symbol">✳</div>
+        <h3>Create Mode</h3>
+        <p>Build experiences and invite others into your ideas.</p>
+      </button>
+      <button class="mode community" onclick="selectMode('community')">
+        <div class="symbol">◎</div>
+        <h3>Community</h3>
+        <p>Discover worlds and experiences made by people.</p>
+      </button>
+    </div>
+
+    <div class="mode-detail" id="modeDetail">
+      <h3 id="detailTitle"></h3>
+      <p id="detailText"></p>
+      <button class="primary" id="detailButton" onclick="enterMode()">Continue →</button>
+    </div>
+  </section>
+
+  <section class="page" id="discover">
+    <div class="page-heading">
+      <div class="eyebrow">Find something unexpected</div>
+      <h1>Discover.</h1>
+      <p class="subtitle">Explore experiences and worlds taking shape.</p>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">COMING INTO VIEW</div>
+      <h3>Shared worlds</h3>
+      <p>Discover community-created experiences will appear here as the world grows.</p>
+    </div>
+    <div class="panel">
+      <div class="eyebrow">EXPLORE</div>
+      <h3>Three connected modes</h3>
+      <p>Jump into Chaos, investigate a Deep World or find something new to create.</p>
+      <button class="primary" onclick="showPage('home')">Explore modes →</button>
+    </div>
+  </section>
+
+  <section class="page" id="create">
+    <div class="page-heading">
+      <div class="eyebrow">Make something happen</div>
+      <h1>Create.</h1>
+      <p class="subtitle">Every world starts with an idea.</p>
+    </div>
+    <div class="panel">
+      <h3>Your experience idea</h3>
+      <p>Give your idea a name and describe what people will do inside it.</p>
+      <input id="ideaName" maxlength="50" placeholder="Name your experience">
+      <textarea id="ideaDescription" maxlength="300" placeholder="What happens in your world?"></textarea>
+      <button class="primary" onclick="previewIdea()">Preview idea →</button>
+    </div>
+    <div class="panel" id="ideaPreview" style="display:none">
+      <div class="eyebrow">YOUR CONCEPT</div>
+      <h3 id="previewName"></h3>
+      <p id="previewDescription"></p>
+      <p class="small-note">This is a local preview. Publishing and sharing will be added later.</p>
+    </div>
+  </section>
+
+  <section class="page" id="profile">
+    <div class="page-heading">
+      <div class="eyebrow">Your presence</div>
+      <h1>Profile.</h1>
+      <p class="subtitle">Your identity across the Project H world.</p>
+    </div>
+    <div class="panel">
+      <div class="symbol">◉</div>
+      <h3>Explorer</h3>
+      <p>Your profile and contributions will live here.</p>
+      <p class="small-note">Account creation and saved progress will be connected in a later step.</p>
+    </div>
+  </section>
+</main>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-button active" data-page="home" onclick="showPage('home')"><b>⌂</b>Home</button>
+  <button class="nav-button" data-page="discover" onclick="showPage('discover')"><b>⌕</b>Discover</button>
+  <button class="nav-button" data-page="create" onclick="showPage('create')"><b>＋</b>Create</button>
+  <button class="nav-button" data-page="profile" onclick="showPage('profile')"><b>◉</b>Profile</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let selectedMode = "";
+
+const modeInfo = {
+  chaos: {
+    title:"⚡ Chaos Mode",
+    text:"Fast collective experiences where unexpected events and group decisions change what happens.",
+    action:"Enter Chaos Mode"
+  },
+  deep: {
+    title:"◈ Deep Worlds",
+    text:"Longer evolving experiences. Investigate clues, connect discoveries and influence the world.",
+    action:"Explore Deep Worlds"
+  },
+  create: {
+    title:"✳ Create Mode",
+    text:"Turn an idea into an experience that other people can enter, explore and shape.",
+    action:"Start creating"
+  },
+  community: {
+    title:"◎ Community",
+    text:"Discover experiences made by other people and find a world to participate in.",
+    action:"Explore Community"
+  }
+};
+
+function showPage(page){
+  document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
+  document.getElementById(page).classList.add("active");
+  document.querySelectorAll(".nav-button").forEach(el=>{
+    el.classList.toggle("active",el.dataset.page===page);
+  });
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function selectMode(mode){
+  selectedMode=mode;
+  const info=modeInfo[mode];
+  document.getElementById("detailTitle").textContent=info.title;
+  document.getElementById("detailText").textContent=info.text;
+  document.getElementById("detailButton").textContent=info.action+" →";
+  const detail=document.getElementById("modeDetail");
+  detail.classList.add("show");
+  detail.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+function enterMode(){
+  if(!selectedMode)return;
+  if(selectedMode==="create"){
+    showPage("create");
+    return;
+  }
+  if(selectedMode==="community"){
+    showPage("discover");
+    return;
+  }
+  showToast(modeInfo[selectedMode].title+" selected. Experience engine is our next build.");
+}
+
+function previewIdea(){
+  const name=document.getElementById("ideaName").value.trim();
+  const description=document.getElementById("ideaDescription").value.trim();
+  if(!name||!description){
+    showToast("Add a name and a description first.");
+    return;
+  }
+  document.getElementById("previewName").textContent=name;
+  document.getElementById("previewDescription").textContent=description;
+  document.getElementById("ideaPreview").style.display="block";
+  document.getElementById("ideaPreview").scrollIntoView({behavior:"smooth"});
+}
+
+let toastTimer;
+function showToast(message){
+  const toast=document.getElementById("toast");
+  toast.textContent=message;
+  toast.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>toast.classList.remove("show"),2600);
+}
+</script>
+</body>
+</html>
