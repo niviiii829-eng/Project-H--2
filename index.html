@@ -861,6 +861,229 @@ function closeWorld() {
   activeWorldId = null;
 }
   
+let activeQuestionId = null;
+
+async function createQuestion() {
+  const questionInput = document.getElementById("newQuestion");
+  const message = document.getElementById("questionMessage");
+  const question = questionInput.value.trim();
+
+  if (!activeWorldId || !question) {
+    message.textContent = "Enter a question first.";
+    return;
+  }
+
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) {
+    message.textContent = "Please log in first.";
+    return;
+  }
+
+  message.textContent = "Publishing question...";
+
+  const { error } = await db
+    .from("world_questions")
+    .insert({
+      world_id: activeWorldId,
+      created_by: user.id,
+      question: question
+    });
+
+  if (error) {
+    console.error(error);
+    message.textContent = "Could not publish: " + error.message;
+    return;
+  }
+
+  questionInput.value = "";
+  message.textContent = "Question published!";
+  await loadActiveQuestion();
+}
+
+async function loadActiveQuestion() {
+  const area = document.getElementById("activeQuestionArea");
+  activeQuestionId = null;
+
+  const { data: question, error } = await db
+    .from("world_questions")
+    .select("id, question, created_at")
+    .eq("world_id", activeWorldId)
+    .eq("status", "open")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    area.textContent = "Could not load the question.";
+    console.error(error);
+    return;
+  }
+
+  if (!question) {
+    area.textContent = "No active question yet.";
+    return;
+  }
+
+  activeQuestionId = question.id;
+
+  const { data: options, error: optionError } = await db
+    .from("decisions")
+    .select("id, choice")
+    .eq("question_id", question.id)
+    .order("created_at", { ascending: true });
+
+  if (optionError) {
+    area.textContent = "Could not load options.";
+    console.error(optionError);
+    return;
+  }
+
+  const { data: votes, error: voteError } = await db
+    .from("world_votes")
+    .select("decision_id, user_id")
+    .eq("question_id", question.id);
+
+  if (voteError) {
+    area.textContent = "Could not load votes.";
+    console.error(voteError);
+    return;
+  }
+
+  const { data: { user } } = await db.auth.getUser();
+  const alreadyVoted = user
+    ? votes.some(vote => vote.user_id === user.id)
+    : false;
+
+  area.innerHTML = "";
+
+  const heading = document.createElement("h3");
+  heading.textContent = question.question;
+  area.appendChild(heading);
+
+  const optionHeading = document.createElement("p");
+  optionHeading.className = "small-note";
+  optionHeading.textContent = "COMMUNITY OPTIONS";
+  area.appendChild(optionHeading);
+
+  if (options.length === 0) {
+    const empty = document.createElement("p");
+    empty.textContent = "No options yet. Suggest the first one.";
+    area.appendChild(empty);
+  }
+
+  options.forEach(option => {
+    const card = document.createElement("div");
+    card.className = "panel";
+
+    const choice = document.createElement("p");
+    choice.textContent = option.choice;
+
+    const count = votes.filter(
+      vote => vote.decision_id === option.id
+    ).length;
+
+    const total = document.createElement("p");
+    total.className = "small-note";
+    total.textContent = count + (count === 1 ? " vote" : " votes");
+
+    const voteButton = document.createElement("button");
+    voteButton.className = "primary";
+
+    if (!user) {
+      voteButton.textContent = "Log in to vote";
+      voteButton.disabled = true;
+    } else if (alreadyVoted) {
+      voteButton.textContent = "Vote recorded";
+      voteButton.disabled = true;
+    } else {
+      voteButton.textContent = "Vote for this →";
+      voteButton.onclick = () => castVote(option.id);
+    }
+
+    card.append(choice, total, voteButton);
+    area.appendChild(card);
+  });
+
+  const optionInput = document.createElement("input");
+  optionInput.id = "newOption";
+  optionInput.maxLength = 500;
+  optionInput.placeholder = "Suggest an outcome...";
+
+  const optionButton = document.createElement("button");
+  optionButton.className = "primary";
+  optionButton.textContent = "Add option →";
+  optionButton.onclick = addOption;
+
+  const optionMessage = document.createElement("p");
+  optionMessage.id = "optionMessage";
+  optionMessage.className = "small-note";
+
+  area.append(optionInput, optionButton, optionMessage);
+}
+
+async function addOption() {
+  const input = document.getElementById("newOption");
+  const message = document.getElementById("optionMessage");
+  const choice = input.value.trim();
+
+  if (!choice) {
+    message.textContent = "Write an option first.";
+    return;
+  }
+
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) {
+    message.textContent = "Please log in to participate.";
+    return;
+  }
+
+  message.textContent = "Adding your option...";
+
+  const { error } = await db
+    .from("decisions")
+    .insert({
+      world_id: activeWorldId,
+      question_id: activeQuestionId,
+      user_id: user.id,
+      choice: choice
+    });
+
+  if (error) {
+    console.error(error);
+    message.textContent = "Could not add option: " + error.message;
+    return;
+  }
+
+  await loadActiveQuestion();
+}
+
+async function castVote(decisionId) {
+  if (!activeQuestionId) return;
+
+  const { data: { user } } = await db.auth.getUser();
+
+  if (!user) return;
+
+  const { error } = await db
+    .from("world_votes")
+    .insert({
+      question_id: activeQuestionId,
+      decision_id: decisionId,
+      user_id: user.id
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Vote could not be recorded: " + error.message);
+    return;
+  }
+
+  await loadActiveQuestion();
+  }
+    
+  
 
 loadWorlds();
   
@@ -907,7 +1130,8 @@ async function createWorld() {
   document.getElementById("worldTitle").value = "";
   document.getElementById("worldDescription").value = "";
 
-  await loadWorlds();
+await loadDecisions();
+await loadActiveQuestion();
 }
   
   
